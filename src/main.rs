@@ -1,40 +1,63 @@
-use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
-use std::{io, thread, time::Duration};
-use tui::{
-    backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
-    widgets::{Block, Borders, Widget},
-    Terminal,
-};
+use colored::Colorize;
 
-fn main() -> Result<(), io::Error> {
-    // setup terminal
-    enable_raw_mode()?;
-    let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
+use users::get_current_gid;
 
-    terminal.draw(|f| {
-        let size = f.size();
-        let block = Block::default().title("Block").borders(Borders::ALL);
-        f.render_widget(block, size);
-    })?;
+use clap::Parser;
 
-    thread::sleep(Duration::from_millis(5000));
+use std::fs::{self, DirEntry, ReadDir};
 
-    // restore terminal
-    disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
-    terminal.show_cursor()?;
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about=None)]
+struct Args {
+    //run without root
+    #[arg(short, long)]
+    no_root: bool,
+}
 
-    Ok(())
+const DEBUG: bool = true;
+
+fn main() {
+    //check to see if root
+    let curr_uid = get_current_gid();
+    if curr_uid != 0 && !DEBUG {
+        println!("{}", "WARNING!!!".red());
+        println!("you should only run this script as root");
+        println!(
+            "if you really think you know what you're doing then run this with the argument {}.",
+            "--no-root".yellow()
+        );
+        return;
+    }
+    let args = Args::parse();
+    if args.no_root {
+        println!("ignoring root");
+    }
+    //lets try listing files in directory
+    let entries: ReadDir = match fs::read_dir(".") {
+        Ok(v) => v,
+        Err(e) => {
+            println!("{}", format!("ERROR: {:?}", e).red());
+            return;
+        }
+    };
+    for e in entries {
+        let ent = match e {
+            Ok(v) => v,
+            _ => continue,
+        };
+        match ent.file_type() {
+            Ok(v) => {
+                //this is stupid but its whatever rn
+                if v.is_dir() {
+                    println!("{}", ent.file_name().to_str().unwrap().blue());
+                } else {
+                    println!("{}", ent.file_name().to_str().unwrap());
+                }
+            }
+            _ => {
+                println!("cant access file_type for whatever reason");
+                continue;
+            }
+        };
+    }
 }
