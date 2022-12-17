@@ -40,24 +40,22 @@ fn main() {
             return;
         }
     };
-    for e in entries {
-        let ent = match e {
-            Ok(v) => v,
-            _ => continue,
-        };
-        match ent.file_type() {
-            Ok(v) => {
-                //this is stupid but its whatever rn
-                if v.is_dir() {
-                    println!("{}", ent.file_name().to_str().unwrap().blue());
-                } else {
-                    println!("{}", ent.file_name().to_str().unwrap());
-                }
-            }
-            _ => {
-                println!("cant access file_type for whatever reason");
-                continue;
-            }
-        };
+    let mut dirs: Vec<String> = Vec::new();
+    for d in entries {
+        if d.is_err() {
+            continue;
+        }
+        //what if instead of cloning we use the name?
+
+        let ent = d.expect("this shouldn't be printed");
+        let name = ent.file_name();
+        let ftype = ent.file_type().expect("unknown file type?");
+        if ftype.is_dir() {
+            dirs.push(name.into_string().expect("string name failed"));
+        }
+    }
+
+    for s in dirs {
+        println!("{}", s.blue());
     }
 }
