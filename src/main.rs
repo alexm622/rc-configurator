@@ -14,6 +14,8 @@ struct Args {
     no_root: bool,
 }
 
+mod files;
+
 const DEBUG: bool = true;
 
 fn main() {
@@ -32,30 +34,15 @@ fn main() {
     if args.no_root {
         println!("ignoring root");
     }
-    //lets try listing files in directory
-    let entries: ReadDir = match fs::read_dir(".") {
-        Ok(v) => v,
-        Err(e) => {
-            println!("{}", format!("ERROR: {:?}", e).red());
-            return;
-        }
-    };
-    let mut dirs: Vec<String> = Vec::new();
-    for d in entries {
-        if d.is_err() {
-            continue;
-        }
-        //what if instead of cloning we use the name?
 
-        let ent = d.expect("this shouldn't be printed");
-        let name = ent.file_name();
-        let ftype = ent.file_type().expect("unknown file type?");
-        if ftype.is_dir() {
-            dirs.push(name.into_string().expect("string name failed"));
-        }
-    }
+    dirs.sort();
+    files.sort();
 
     for s in dirs {
         println!("{}", s.blue());
     }
+    for f in files {
+        println!("{}", f.red());
+    }
+    for sl in symlinks {}
 }
