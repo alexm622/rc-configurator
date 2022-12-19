@@ -48,4 +48,13 @@ fn main() {
     for sl in rres.symlinks {
         println!("{}", sl);
     }
+    println!("{}", "lets try reading the hashmap".yellow());
+    for i in rres.all_items {
+        println!(
+            "{} - {}: {}",
+            files::reader::u32_perm_to_str(&i.1),
+            i.1.to_string().red(),
+            i.0.to_string().yellow()
+        );
+    }
 }
