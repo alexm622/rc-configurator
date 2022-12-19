@@ -1,24 +1,23 @@
 use std::{
     collections::HashMap,
-    error::Error,
     fs::{self, ReadDir},
     os::unix::prelude::PermissionsExt,
 };
 
 pub struct ReadResult {
-    path: String,
+    pub path: String,
 
     //all items<file name, permissions>
-    all_items: HashMap<String, u32>,
+    pub all_items: HashMap<String, u32>,
 
     //all dirs
-    dirs: Vec<String>,
+    pub dirs: Vec<String>,
 
     //all files
-    files: Vec<String>,
+    pub files: Vec<String>,
 
     //symlinks
-    symlinks: Vec<String>,
+    pub symlinks: Vec<String>,
 }
 
 impl ReadResult {
@@ -31,15 +30,35 @@ impl ReadResult {
             symlinks: Vec::new(),
         }
     }
+
+    fn sort(rres: &mut Self) {
+        rres.dirs.sort();
+        rres.files.sort();
+        rres.symlinks.sort();
+    }
 }
 
 pub fn read_all(path: &impl ToString) -> Result<ReadResult, std::io::Error> {
-    let res: ReadResult = ReadResult::new(path);
-    return Ok(res);
+    let mut rres: ReadResult = ReadResult::new(path);
+    let readdir = match get_readdir(path) {
+        Ok(v) => v,
+        Err(e) => return Err(e),
+    };
+    match get_files(&mut rres, readdir) {
+        Some(s) => {
+            println!("one or more errors encountered");
+            Some(s)
+        }
+        None => None,
+    };
+    //sort rres
+    ReadResult::sort(&mut rres);
+
+    return Ok(rres);
 }
 
 fn get_readdir(path: &impl ToString) -> Result<ReadDir, std::io::Error> {
-    let entries: ReadDir = match fs::read_dir("/etc/rc.d/") {
+    let entries: ReadDir = match fs::read_dir(path.to_string()) {
         Ok(v) => v,
         Err(e) => {
             return Err(e);
@@ -48,7 +67,7 @@ fn get_readdir(path: &impl ToString) -> Result<ReadDir, std::io::Error> {
     return Ok(entries);
 }
 
-fn get_files(rr: &ReadResult, entries: ReadDir) -> Option<String> {
+fn get_files(rr: &mut ReadResult, entries: ReadDir) -> Option<String> {
     //lets try listing files in directory
     for d in entries {
         if d.is_err() {
@@ -57,7 +76,8 @@ fn get_files(rr: &ReadResult, entries: ReadDir) -> Option<String> {
         //what if instead of cloning we use the name?
 
         let ent = d.expect("this shouldn't be printed");
-        let name = match ent.file_name().to_str() {
+        let file_name = ent.file_name();
+        let name = match file_name.to_str() {
             Some(v) => v,
             None => return Some("couldn't get name".to_owned()),
         };

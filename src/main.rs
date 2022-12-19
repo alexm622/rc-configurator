@@ -1,10 +1,9 @@
 use colored::Colorize;
 
+use files::reader::read_all;
 use users::get_current_gid;
 
 use clap::Parser;
-
-use std::fs::{self, DirEntry, ReadDir};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about=None)]
@@ -34,15 +33,19 @@ fn main() {
     if args.no_root {
         println!("ignoring root");
     }
+    let path = String::from("/etc/rc.d/");
+    let rres = match read_all(&path) {
+        Ok(v) => v,
+        Err(e) => panic!("encountered error: {}", e),
+    };
 
-    dirs.sort();
-    files.sort();
-
-    for s in dirs {
+    for s in rres.dirs {
         println!("{}", s.blue());
     }
-    for f in files {
+    for f in rres.files {
         println!("{}", f.red());
     }
-    for sl in symlinks {}
+    for sl in rres.symlinks {
+        println!("{}", sl);
+    }
 }

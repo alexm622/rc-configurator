@@ -2,3 +2,6 @@
 
 #cargo.lock because its dumb
 Cargo.lock
+
+#because rust-analyzer and coc like to crash so often
+nvim*.core
