@@ -106,49 +106,26 @@ fn get_files(rr: &mut ReadResult, entries: ReadDir) -> Option<String> {
 
 pub fn u32_perm_to_str(perm: &u32) -> String {
     let perm_u32: u32 = perm.clone();
-    let as_bin = format!("{perm_u32:b}");
-    let mut last: String = String::from("");
-    let mut all: u8 = 0;
-    let mut group: u8 = 0;
-    let mut owner: u8 = 0;
-    let mut special: u8 = 0;
-    let mut iter: u8 = 0;
-    let mut dbg_str = "".to_owned();
-    let it_on: String = as_bin.chars().skip(4).collect();
+    let mut last: String = String::new();
+    let it_on: String = format!("{perm_u32:b}").chars().skip(4).collect();
+
+    let mut out: String = String::new();
+
     for s in it_on.chars() {
-        dbg_str.push(s);
         if last.len() < 3 {
             last.push(s);
-            if iter != 3 && last.len() != 3 {
+            if last.len() < 3 {
                 continue;
             }
         }
-        match iter {
-            0 => {
-                special = u8::from_str_radix(&last, 2).expect("all wasn't an int?");
-            }
-            1 => {
-                owner = u8::from_str_radix(&last, 2).expect("all wasn't an int?");
-            }
-            2 => {
-                group = u8::from_str_radix(&last, 2).expect("all wasn't an int?");
-            }
-            3 => {
-                all = u8::from_str_radix(&last, 2).expect("all wasn't an int?");
-            }
-            _ => {
-                println!(
-                    "{}{}{}{}",
-                    "somehow got a value of iter = ".red(),
-                    iter.to_string().yellow(),
-                    " for last value: ".red(),
-                    last.yellow()
-                );
-            }
-        };
+        //convert string of binary characters to an interger and append it to the permissions
+        //string
+        out.push_str(
+            &u8::from_str_radix(&last, 2)
+                .expect("this should always be an int")
+                .to_string(),
+        );
         last.clear();
-        iter += 1;
     }
-    assert!(dbg_str == it_on);
-    return format!("{}{}{}{}", special, owner, group, all);
+    return out;
 }
