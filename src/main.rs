@@ -1,9 +1,19 @@
+//define module structure
+
+mod errors;
+mod files;
+
+use std::rc::Rc;
+
+//begin
 use colored::Colorize;
 
 use files::reader::read_all;
 use users::get_current_gid;
 
 use clap::Parser;
+
+use crate::files::rc::RC;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about=None)]
@@ -12,8 +22,6 @@ struct Args {
     #[arg(short, long)]
     no_root: bool,
 }
-
-mod files;
 
 const DEBUG: bool = true;
 
@@ -57,4 +65,13 @@ fn main() {
             i.0.to_string().yellow()
         );
     }
+
+    let rs = RC::new(&"/etc/rc.conf");
+    println!(
+        "Does rc.conf exist: {}",
+        match rs.rc_conf_exists() {
+            true => "YES".green(),
+            false => "NO".red(),
+        }
+    );
 }

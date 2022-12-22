@@ -48,7 +48,7 @@ pub fn read_all(path: &impl ToString) -> Result<ReadResult, std::io::Error> {
     };
     match get_files(&mut rres, readdir) {
         Some(s) => {
-            println!("one or more errors encountered");
+            println!("{}", "one or more errors encountered".red());
             Some(s)
         }
         None => None,
