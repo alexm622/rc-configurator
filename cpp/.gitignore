@@ -39,3 +39,6 @@ compile_commands.json
 
 test
 test_m/
+
+#any core files
+*.core
