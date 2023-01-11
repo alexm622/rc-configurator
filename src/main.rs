@@ -74,4 +74,9 @@ fn main() {
             false => "NO".red(),
         }
     );
+
+    //lets try reading rc.conf
+    if rs.rc_conf_exists() {
+        print!("{}", rs.read_rc_conf());
+    }and the first half of the class looks like pa
 }
